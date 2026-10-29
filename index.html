@@ -1,0 +1,2178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI in Credit Scoring: Kaspi.kz Case Study | ECO526</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --border-focus: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #334155;
+      --text-light: #64748b;
+      --brand-red: #e11d48;
+      --brand-red-subtle: #ffe4e6;
+      --brand-blue: #2563eb;
+      --brand-blue-subtle: #dbeafe;
+      --brand-green: #059669;
+      --brand-green-subtle: #d1fae5;
+      --brand-amber: #d97706;
+      --brand-amber-subtle: #fef3c7;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 6px 20px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+      --shadow-lg: 0 14px 34px -6px rgba(15, 23, 42, 0.12), 0 6px 14px -3px rgba(15, 23, 42, 0.06);
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
+      background-size: 24px 24px;
+    }
+
+    /* Top Progress Bar */
+    .progress-bar-track {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: #e2e8f0;
+      z-index: 100;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 3.5%;
+      background: linear-gradient(90deg, var(--brand-red), var(--brand-blue));
+      transition: width 0.25s ease-out;
+    }
+
+    /* Top Navigation Header */
+    .top-header {
+      position: fixed;
+      top: 5px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 44px;
+      z-index: 90;
+      background: rgba(248, 250, 252, 0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+    .logo-badge {
+      background: var(--brand-red);
+      color: #ffffff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .slide-badge {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 4px 14px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .fs-btn {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .fs-btn:hover {
+      color: var(--text-main);
+      border-color: var(--border-focus);
+      transform: translateY(-1px);
+    }
+
+    /* Deck Viewport */
+    .deck-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 90px 54px 84px 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    /* Headings & Badges */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brand-blue-subtle);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      color: var(--brand-blue);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      width: fit-content;
+    }
+    .badge-pill.red {
+      background: var(--brand-red-subtle);
+      border-color: rgba(225, 29, 72, 0.25);
+      color: var(--brand-red);
+    }
+    .badge-pill.green {
+      background: var(--brand-green-subtle);
+      border-color: rgba(5, 150, 105, 0.25);
+      color: var(--brand-green);
+    }
+    .badge-pill.amber {
+      background: var(--brand-amber-subtle);
+      border-color: rgba(217, 119, 6, 0.25);
+      color: var(--brand-amber);
+    }
+
+    .slide-heading-block {
+      margin-bottom: 24px;
+    }
+    .slide-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.2vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: var(--text-main);
+    }
+    .slide-lead {
+      font-size: clamp(1.05rem, 1.35vw, 1.22rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 8px;
+      max-width: 1000px;
+    }
+
+    /* Grid Layouts */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+      align-items: stretch;
+      height: calc(100% - 110px);
+    }
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: stretch;
+      height: calc(100% - 110px);
+    }
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      align-items: stretch;
+      height: calc(100% - 110px);
+    }
+    .grid-split-chart {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 30px;
+      align-items: center;
+      height: calc(100% - 100px);
+    }
+
+    /* Cards */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .panel:hover {
+      border-color: var(--border-focus);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    .panel.highlight-red { border-top: 5px solid var(--brand-red); }
+    .panel.highlight-blue { border-top: 5px solid var(--brand-blue); }
+    .panel.highlight-green { border-top: 5px solid var(--brand-green); }
+    .panel.highlight-amber { border-top: 5px solid var(--brand-amber); }
+
+    .panel-icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.25;
+      margin-bottom: 10px;
+    }
+    .panel-body {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Metrics Callouts */
+    .big-metric-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .big-metric-box {
+      flex: 1;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .big-metric-number {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1;
+    }
+    .big-metric-number.red { color: var(--brand-red); }
+    .big-metric-number.blue { color: var(--brand-blue); }
+    .big-metric-number.green { color: var(--brand-green); }
+    .big-metric-label {
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-top: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Bullet Points */
+    .point-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .point-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .point-index {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--brand-blue-subtle);
+      color: var(--brand-blue);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .point-index.red {
+      background: var(--brand-red-subtle);
+      color: var(--brand-red);
+    }
+    .point-index.green {
+      background: var(--brand-green-subtle);
+      color: var(--brand-green);
+    }
+
+    /* Clean Light Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1.02rem;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 14px 18px;
+      background: var(--surface-subtle);
+      color: var(--text-main);
+      font-family: var(--font-display);
+      font-weight: 700;
+      border-bottom: 2px solid var(--border);
+    }
+    .data-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .data-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    /* Chart Containers */
+    .chart-frame {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      height: 100%;
+      max-height: 490px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      cursor: zoom-in;
+    }
+    .chart-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .chart-tag {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Q&A Interactive Cards */
+    .qa-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .qa-box:hover {
+      border-color: var(--brand-blue);
+      box-shadow: var(--shadow-md);
+    }
+    .qa-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .qa-toggle-icon {
+      font-size: 1.4rem;
+      color: var(--brand-blue);
+      transition: transform 0.2s;
+    }
+    .qa-box.open .qa-toggle-icon {
+      transform: rotate(45deg);
+    }
+    .qa-body {
+      margin-top: 14px;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      display: none;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .qa-box.open .qa-body {
+      display: block;
+    }
+
+    /* Bottom Control Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 14px 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(248, 250, 252, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      z-index: 90;
+    }
+    .hint-label {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .key-cap {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-arrow-group {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-arrow {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-arrow:hover {
+      background: var(--text-main);
+      color: #ffffff;
+      border-color: var(--text-main);
+    }
+    .btn-arrow:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      background: #ffffff;
+      color: var(--text-light);
+    }
+
+    /* Title Slide Hero */
+    .hero-slide {
+      text-align: center;
+      align-items: center;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.4vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+    .hero-title span {
+      color: var(--brand-red);
+    }
+    .hero-subtitle {
+      font-size: clamp(1.15rem, 1.7vw, 1.4rem);
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 34px;
+      max-width: 840px;
+    }
+    .hero-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+    .hero-pill {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: 24px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-pill b {
+      color: var(--text-main);
+    }
+
+    /* Modal for enlarged charts */
+    .zoom-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .zoom-modal.open {
+      display: flex;
+    }
+    .zoom-img {
+      max-width: 92vw;
+      max-height: 88vh;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+    .zoom-close {
+      position: absolute;
+      top: 24px;
+      right: 36px;
+      color: #ffffff;
+      font-size: 2.2rem;
+      cursor: pointer;
+      font-weight: 700;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+  <style>
+    .math-formula {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 1.12rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin: 12px 0;
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="top-header">
+    <div class="header-logo">
+      <span class="logo-badge">ECO526</span> AI For Financial Technologies
+    </div>
+    <div class="header-controls">
+      <div class="slide-badge" id="slideIndicator">1 / 33</div>
+      <button class="fs-btn" id="fsToggle" title="Toggle Fullscreen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        Fullscreen
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Deck -->
+  <main class="deck-container" id="deckContainer">
+
+    <!-- SLIDE 1: Title -->
+    <section class="slide active hero-slide">
+      <div class="badge-pill red">ECO526 Case Study Presentation</div>
+      <h1 class="hero-title">AI in Credit Scoring:<br>Resolving the <span>Speed vs. Risk</span> Dilemma</h1>
+      <p class="hero-subtitle">
+        Predictive Machine Learning, Behavioral Digital Footprints, and Econometric Validation in the <b>Kaspi.kz Ecosystem</b>
+      </p>
+      <div class="hero-pill-row">
+        <div class="hero-pill">Focus: <b>Kaspi.kz Super App</b></div>
+        <div class="hero-pill">Dataset: <b>150,000 Borrowers (Benchmark)</b></div>
+        <div class="hero-pill">Format: <b>Individual Defense (60 Min)</b></div>
+        <div class="hero-pill">Source: <b>US SEC Form 20-F Disclosures</b></div>
+      </div>
+      <div style="font-size: 0.95rem; color: var(--text-light);">
+        Use keyboard arrows <span class="key-cap">→</span> or <span class="key-cap">Space</span> to navigate slides
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Executive Summary -->
+    <section class="slide">
+      <div class="badge-pill red">Executive Summary</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Kaspi.kz: The Benchmark Super App Ecosystem</h2>
+        <p class="slide-lead">Three integrated platforms create a continuous data flywheel that powers automated credit scoring.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🛍️</div>
+            <h3 class="panel-title">1. Marketplace</h3>
+            <p class="panel-body">E-commerce storefront connecting tens of thousands of merchants with retail buyers. Drives purchase intent and anchors high-velocity Buy-Now-Pay-Later (BNPL) checkout financing.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number red">40%+</div>
+              <div class="big-metric-label">BNPL Share of Volume</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">💳</div>
+            <h3 class="panel-title">2. Payments Platform</h3>
+            <p class="panel-body">Kaspi QR, bill payments, and P2P transfers form an everyday financial utility. Generates millions of behavioral micro-transactions (Digital Footprint) for risk evaluation.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">44.2T ₸</div>
+              <div class="big-metric-label">Total Payment Volume</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">⚡</div>
+            <h3 class="panel-title">3. Fintech Platform (AI Core)</h3>
+            <p class="panel-body">Proprietary underwriting algorithm approving installment loans in under 1 second. Operates at massive scale with zero human loan officer intervention.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number green">2.1%</div>
+              <div class="big-metric-label">Cost of Risk (2024)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Part 1 - The Digital Lending Dilemma -->
+    <section class="slide">
+      <div class="badge-pill red">Part 1: The Business Problem</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">The Core Dilemma: Conversion Velocity vs. Credit Risk</h2>
+        <p class="slide-lead">In mobile commerce, checkout latency destroys sales — but hasty lending causes catastrophic defaults.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">⏱️</div>
+            <h3 class="panel-title">The Commercial Demand: Instant Decisions</h3>
+            <p class="panel-body">When a customer is checking out on a smartphone, any delay leads to cart abandonment.</p>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index">1</div>
+                <div><b>Zero Patience:</b> Shoppers expect financing approved in <b>1 to 2 seconds</b> right at the payment terminal or checkout screen.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">2</div>
+                <div><b>Merchant Loyalty:</b> Fast approvals directly maximize merchant sales volumes across the marketplace.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🛡️</div>
+            <h3 class="panel-title">The Banking Reality: Capital Protection</h3>
+            <p class="panel-body">Issuing unsecured loans without rigorous checks destroys bank capital through default surges.</p>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>Asymmetric Losses:</b> A defaulted loan loses ~80% of principal (LGD), while a good loan only yields ~18% interest margin.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>Fraud Vulnerability:</b> Rapid approvals must detect synthetic fraud rings in real time.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Part 1 - Traditional vs AI Underwriting -->
+    <section class="slide">
+      <div class="badge-pill">Part 1: Operational Comparison</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Traditional Banking vs. Real-Time AI Underwriting</h2>
+        <p class="slide-lead">Why physical bank branches and manual credit committees cannot compete with digital platforms.</p>
+      </div>
+      <div class="panel" style="height: calc(100% - 110px); justify-content: center;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Underwriting Feature</th>
+              <th>Traditional Commercial Bank</th>
+              <th>Kaspi.kz Automated AI Engine</th>
+              <th>Business Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Decision Speed (SLA)</b></td>
+              <td>24 to 72 hours (manual review)</td>
+              <td><b>&lt; 0.5 seconds</b> (algorithmic)</td>
+              <td><b style="color:var(--brand-green);">Instant checkout conversion</b></td>
+            </tr>
+            <tr>
+              <td><b>Cost per Application (OPEX)</b></td>
+              <td>$10 to $25 (salaries, call centers)</td>
+              <td><b>&lt; $0.05</b> (cloud compute cost)</td>
+              <td><b style="color:var(--brand-green);">99% cost reduction</b></td>
+            </tr>
+            <tr>
+              <td><b>Required Documentation</b></td>
+              <td>Paper payslips, employer letters, tax forms</td>
+              <td>Super App transaction trail & bureau feed</td>
+              <td><b style="color:var(--brand-green);">Zero paperwork friction</b></td>
+            </tr>
+            <tr>
+              <td><b>Underwriting Model</b></td>
+              <td>Rigid linear scorecards + human officer</td>
+              <td>Gradient Boosted Decision Trees + XAI</td>
+              <td><b style="color:var(--brand-green);">Captures non-linear risks</b></td>
+            </tr>
+            <tr>
+              <td><b>Operational Scalability</b></td>
+              <td>Hiring more staff to process more loans</td>
+              <td>Software scales instantly to millions of calls</td>
+              <td><b style="color:var(--brand-green);">Infinite operating leverage</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Part 1 - Disclosed Kaspi.kz Financials -->
+    <section class="slide">
+      <div class="badge-pill green">Part 1: Verified Financial Evidence</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Kaspi.kz Financial Results (US SEC Form 20-F)</h2>
+        <p class="slide-lead">Official audited filings prove automated scoring maintains exceptional portfolio quality.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">📉</div>
+            <h3 class="panel-title">Low & Stable Cost of Risk</h3>
+            <p class="panel-body">Despite rapid expansion in consumer BNPL financing, Kaspi's Cost of Risk remained tightly controlled across volatile macroeconomic conditions.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number green">2.0%</div>
+              <div class="big-metric-label">2023 Fiscal Year</div>
+            </div>
+            <div class="big-metric-box">
+              <div class="big-metric-number green">2.1%</div>
+              <div class="big-metric-label">2024 Fiscal Year</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">🛡️</div>
+            <h3 class="panel-title">Falling NPL Portfolio Ratio</h3>
+            <p class="panel-body">The proportion of non-performing loans (90+ days past due) has steadily decreased year-over-year, outperforming regional commercial banking peers.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">6.3%</div>
+              <div class="big-metric-label">2022</div>
+            </div>
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">5.5%</div>
+              <div class="big-metric-label">2023</div>
+            </div>
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">5.4%</div>
+              <div class="big-metric-label">2024</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">📜</div>
+            <h3 class="panel-title">Direct SEC 20-F Disclosure</h3>
+            <p class="panel-body" style="font-style: italic; font-size: 1.02rem;">
+              "We attribute our low cost of risk primarily to ongoing improvements in proprietary, data-driven origination capabilities and automated collections."
+            </p>
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-light); margin-top: 14px;">
+            Source: Kaspi.kz Annual Report on Form 20-F filed with the U.S. Securities and Exchange Commission (SEC).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Part 2 - Global Benchmark: Ant Group "3-1-0" -->
+    <section class="slide">
+      <div class="badge-pill">Part 2: Global Industry Benchmark</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">The Global Benchmark: Ant Group's "3-1-0" Model</h2>
+        <p class="slide-lead">How Alibaba's MYbank proved that automated lending can profitably finance the unbanked.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">3️⃣</div>
+            <h3 class="panel-title">3 Minutes to Apply</h3>
+            <p class="panel-body">Micro-merchants and gig economy workers submit funding applications directly on their mobile phones without submitting any physical documents or collateral.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">1️⃣</div>
+            <h3 class="panel-title">1 Second to Decide</h3>
+            <p class="panel-body">AI algorithms process thousands of real-time data signals (transaction velocity, store inventory, customer reviews) to approve and disburse funds in 1 second.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">0️⃣</div>
+            <h3 class="panel-title">0 Human Intervention</h3>
+            <p class="panel-body">Over <b>50 million micro-merchants</b> financed with a portfolio default rate <b>below 2%</b>. Proves that behavioral transaction trails outperform static credit bureau files.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Part 2 - Algorithmic Evolution -->
+    <section class="slide">
+      <div class="badge-pill">Part 2: AI Technology Evolution</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">From Rigid Scorecards to Gradient Boosted Trees</h2>
+        <p class="slide-lead">Why machine learning algorithms fundamentally outperform traditional FICO-style linear scoring.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel">
+          <div>
+            <div class="panel-icon">📐</div>
+            <h3 class="panel-title">Legacy Linear Scoring (FICO / Scorecard)</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index">•</div>
+                <div><b>Strict Additive Assumption:</b> Assumes each factor adds a fixed score, regardless of how other factors interact.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">•</div>
+                <div><b>Blind to Non-Linear Risk:</b> Fails to detect sharp risk jumps (e.g. credit card utilization rising from 80% to 95%).</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">•</div>
+                <div><b>Manual Binning:</b> Requires credit analysts to manually create categories for age, salary, and debt.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">🌳</div>
+            <h3 class="panel-title">Modern AI Ensembles (Gradient Boosting)</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Hierarchical Decision Splits:</b> Dynamically splits data to find subtle non-linear credit risk thresholds.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Cross-Feature Interactions:</b> Automatically discovers synergies (e.g. young applicant + stable utility bill trail = Safe Borrower).</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Native Handling of Missing Data:</b> Tree structures route missing bureau records without distorting coefficients.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Part 2 - The Power of Digital Footprints -->
+    <section class="slide">
+      <div class="badge-pill">Part 2: Behavioral Alternative Data</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">The Power of Digital Footprints in Credit Scoring</h2>
+        <p class="slide-lead">Academic research confirms behavioral transaction trails match or exceed credit bureau data power.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">📱</div>
+            <h3 class="panel-title">Transaction Regularity</h3>
+            <p class="panel-body">Routine daily payments (Kaspi QR payments for groceries, transit, dining) provide a real-time signal of income and spending habits that static monthly salaries cannot show.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">💡</div>
+            <h3 class="panel-title">Utility Payment Discipline</h3>
+            <p class="panel-body">Paying electricity, water, and mobile phone bills consistently on time acts as a proven behavioral proxy for personal reliability and financial discipline.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">📚</div>
+            <h3 class="panel-title">The Academic Benchmark</h3>
+            <p class="panel-body"><b>Berg et al. (Review of Financial Studies, 2020)</b> proved that simple digital footprints match credit bureau predictive power and reduce loan defaults by <b>15% to 20%</b>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Part 3 - Kazakhstan Regulatory Architecture -->
+    <section class="slide">
+      <div class="badge-pill amber">Part 3: Architecture & Compliance</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Two-Stage Pipeline: Regulatory Hard Rules + Soft AI</h2>
+        <p class="slide-lead">How Kaspi balances National Bank / ARDFM regulations with machine learning speed.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">⚖️</div>
+            <h3 class="panel-title">Stage 1: Hard Knock-Out Rules (Compliance)</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index">1</div>
+                <div><b>Debt Burden Limit (КДН &le; 50%):</b> By Kazakh law, monthly debt payments cannot exceed 50% of verified borrower income.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">2</div>
+                <div><b>Credit Bureau Checks (FCB / SCB):</b> Instant automated screening against active defaults and legal debt enforcement registries.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">3</div>
+                <div><b>Instant Pre-Filter:</b> Applications failing Stage 1 are rejected immediately before running ML models.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">🧠</div>
+            <h3 class="panel-title">Stage 2: Soft AI Scoring Engine</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index green">A</div>
+                <div><b>Continuous Probability (PD):</b> For compliant applicants, gradient boosting computes exact default probability (p<sub>i</sub> between 0 and 1).</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">B</div>
+                <div><b>Risk-Based Credit Limit:</b> Calibrates the approved loan amount to match the borrower's risk capacity.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">C</div>
+                <div><b>Automated Explanations:</b> Generates explainable reasons if an application falls below threshold.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: Part 4 - Platform Economics & OPEX -->
+    <section class="slide">
+      <div class="badge-pill green">Part 4: Measurable Business Impact</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Platform Economics & Operating Leverage</h2>
+        <p class="slide-lead">How automated instant underwriting powers the financial performance of Kaspi.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">💰</div>
+            <h3 class="panel-title">40% OPEX Cost Reduction</h3>
+            <p class="panel-body">Removing manual branch reviews and paper verification drops underwriting cost per application from ~$15 down to fractions of a cent (BIS / World Bank, 2020).</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">🚀</div>
+            <h3 class="panel-title">Marketplace GMV Boost</h3>
+            <p class="panel-body">Instant BNPL installment credit turns casual shoppers into active buyers in Kaspi Marketplace, driving merchant sales volume and recurring marketplace commission fees.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">🔄</div>
+            <h3 class="panel-title">The Data Flywheel</h3>
+            <p class="panel-body">More marketplace transactions generate richer digital footprint trails, training superior AI models, allowing higher approval rates at lower default risk.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: Part 4 - IFRS 9 Staging & Capital Optimization -->
+    <section class="slide">
+      <div class="badge-pill">Part 4: Capital & Provisioning</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">IFRS 9 Expected Credit Loss (ECL) Optimization</h2>
+        <p class="slide-lead">How higher predictive accuracy directly frees up bank regulatory capital reserves.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">📊</div>
+            <h3 class="panel-title">The Three IFRS 9 Stages</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index">1</div>
+                <div><b>Stage 1 (Performing):</b> Provision = 12-Month Expected Loss ($ECL_{12M}$). Lowest capital charge.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">2</div>
+                <div><b>Stage 2 (Significant Risk Jump):</b> Provision jumps to <b>Lifetime Expected Loss</b> ($ECL_{\text{Lifetime}}$).</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">3</div>
+                <div><b>Stage 3 (Defaulted):</b> Full loan impairment (PD = 100%).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">💎</div>
+            <h3 class="panel-title">The Capital Release Mechanism</h3>
+            <p class="panel-body">
+              Under IFRS 9:
+              <div class="math-formula">ECL = PD &times; LGD &times; EAD</div>
+              A model with a <b>+2.5% Gini advantage</b> accurately separates temporary liquidity blips from true structural defaults. This prevents good loans from prematurely sliding into expensive Stage 2 lifetime provisioning.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: Part 5 - The Black-Box Problem -->
+    <section class="slide">
+      <div class="badge-pill red">Part 5: Risks & Limitations</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">The "Black-Box" Problem & Regulatory Mandates</h2>
+        <p class="slide-lead">Why complex machine learning models pose compliance and consumer protection challenges.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">📦</div>
+            <h3 class="panel-title">1. Model Opacity</h3>
+            <p class="panel-body">Ensembles of hundreds of decision trees with deep splits make it impossible to see the exact causal rationale behind a rejection without specialized tools.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">⚖️</div>
+            <h3 class="panel-title">2. Legal Right to Explanation</h3>
+            <p class="panel-body">Kazakhstan consumer protection rules and global standards require lenders to give rejected applicants specific, actionable reasons for credit denial.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">🛡️</div>
+            <h3 class="panel-title">3. Prudential Audits</h3>
+            <p class="panel-body">Financial regulators require internal risk validation teams to verify parameter monotonicity (e.g. more past arrears must always increase risk).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: Part 5 - Cautionary Case 1: Apple Card Bias -->
+    <section class="slide">
+      <div class="badge-pill red">Part 5: Cautionary Case Study</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Case 1: Apple Card & Goldman Sachs Bias Scandal</h2>
+        <p class="slide-lead">The real-world failure of "Fairness Through Unawareness" in automated credit underwriting.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🚨</div>
+            <h3 class="panel-title">The Public Scandal (2019)</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>The Outcry:</b> Tech founders David Hansson and Steve Wozniak discovered their wives received credit limits <b>10x to 20x lower</b> despite joint assets and higher credit scores.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>Bank Defense:</b> Goldman Sachs stated: <i>"The algorithm never considered gender."</i></div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>Investigation:</b> Triggered an official investigation by the New York Department of Financial Services (NY DFS).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div>
+            <div class="panel-icon">🔍</div>
+            <h3 class="panel-title">The Technical Lesson: Proxy Variables</h3>
+            <p class="panel-body">Simply removing protected attributes (gender, ethnicity) <b>does not prevent bias</b>. Deep algorithms find proxy variables (shopping categories, career gaps) that correlate with protected traits.</p>
+            <div class="big-metric-group">
+              <div class="big-metric-box">
+                <div class="big-metric-number red">Proxy Bias</div>
+                <div class="big-metric-label">Hidden Discrimination</div>
+              </div>
+              <div class="big-metric-box">
+                <div class="big-metric-number blue">Mandatory XAI</div>
+                <div class="big-metric-label">Required Solution</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: Part 5 - Explainable AI (SHAP) -->
+    <section class="slide">
+      <div class="badge-pill green">Part 5: Responsible AI Framework</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Explainable AI: Opening the Black Box with SHAP</h2>
+        <p class="slide-lead">Decomposing complex ensemble predictions into clear additive factor contributions.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">🧮</div>
+            <h3 class="panel-title">Shapley Additive Explanations (SHAP)</h3>
+            <p class="panel-body">
+              Rooted in cooperative game theory (Nobel Prize in Economics), SHAP calculates the exact marginal contribution of each variable to a borrower's final default probability:
+              <div class="math-formula">f(x) = &phi;<sub>0</sub> + &Sigma; &phi;<sub>j</sub>(x)</div>
+              <div class="math-formula">Final Risk = Base + &phi;<sub>Utilization</sub> + &phi;<sub>Arrears</sub> + &hellip;</div>
+            </p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div>
+            <div class="panel-icon">📋</div>
+            <h3 class="panel-title">Compliance Advantages for Kaspi</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index green">1</div>
+                <div><b>Clear Adverse Action Notices:</b> When rejecting a loan, the app displays the top 2 negative SHAP drivers (e.g. <i>"High card limit utilization and 30-day arrears"</i>).</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">2</div>
+                <div><b>Fairness Verification:</b> Mathematically proves that protected demographic traits have zero impact on loan decisions.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: Part 5 - Cautionary Case 2: Zillow Data Drift -->
+    <section class="slide">
+      <div class="badge-pill red">Part 5: Cautionary Case Study</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Case 2: Zillow's $880M Collapse & Data Drift</h2>
+        <p class="slide-lead">What happens when autonomous machine learning models operate during macroeconomic shifts.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">💥</div>
+            <h3 class="panel-title">The 2021 Zillow Offers Catastrophe</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>The Error:</b> Zillow's automated home buying model (Zestimate) was trained on stable pre-pandemic conditions. When interest rates and material prices shifted, the algorithm kept overpaying.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>Winner's Curse:</b> Sellers with overvalued homes eagerly took cash offers; undervalued homes were rejected.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">!</div>
+                <div><b>The Cost:</b> <b>$880M in write-downs</b>, business unit shutdown, and 25% of company staff laid off.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">📉</div>
+            <h3 class="panel-title">The Lesson for Kaspi: Covariate Shift</h3>
+            <p class="panel-body">In credit scoring, inflation spikes or base rate hikes cause <b>Data Drift</b>. Borrowers with historical Debt Ratios of 30% suddenly face severe cash-flow strain.</p>
+            <div class="point-list" style="margin-top: 14px;">
+              <div class="point-item">
+                <div class="point-index">•</div>
+                <div><b>Never Run Blindly:</b> Monitor Population Stability Index (PSI) continuously.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">•</div>
+                <div><b>Safety Tripwires:</b> Automatically tighten approval cutoffs whenever macroeconomic volatility spikes.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 16: Part 6 - Benchmark Dataset Overview -->
+    <section class="slide">
+      <div class="badge-pill">Part 6: Empirical Demonstration</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Benchmark Dataset: 150,000 Real Borrowers</h2>
+        <p class="slide-lead">Empirical evaluation of both econometric and AI models on the Give Me Some Credit dataset.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">📊</div>
+            <h3 class="panel-title">Sample Dimensions</h3>
+            <div class="point-list">
+              <div class="point-item"><div class="point-index">•</div><div><b>Observations:</b> 149,999 clean borrowers</div></div>
+              <div class="point-item"><div class="point-index">•</div><div><b>Train Sample:</b> 119,999 loans (80%)</div></div>
+              <div class="point-item"><div class="point-index">•</div><div><b>Hold-out Test:</b> 30,000 loans (20%)</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🎯</div>
+            <h3 class="panel-title">Target Variable</h3>
+            <div class="point-list">
+              <div class="point-item"><div class="point-index red">•</div><div><b>Name:</b> <code>SeriousDlqin2yrs</code></div></div>
+              <div class="point-item"><div class="point-index red">•</div><div><b>Definition:</b> 90+ days past due delinquency</div></div>
+              <div class="point-item"><div class="point-index red">•</div><div><b>Distribution:</b> 93.32% Good, <b>6.68% Default</b></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">⚙️</div>
+            <h3 class="panel-title">Core Risk Features</h3>
+            <div class="point-list">
+              <div class="point-item"><div class="point-index green">•</div><div>Revolving credit line utilization</div></div>
+              <div class="point-item"><div class="point-index green">•</div><div>Prior delinquencies (30-59, 60-89, 90+ days)</div></div>
+              <div class="point-item"><div class="point-index green">•</div><div>Debt-to-income ratio, Age, Income, Mortgages</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 17: Part 6 - Feature Engineering Pipeline -->
+    <section class="slide">
+      <div class="badge-pill blue">Part 6: Practical Data Cleansing</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Data Cleansing & Feature Engineering Workflow</h2>
+        <p class="slide-lead">Transforming raw transaction logs and credit feeds into clean predictor variables.</p>
+      </div>
+      <div class="grid-4col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">🧹</div>
+            <h3 class="panel-title">Special Code Imputation</h3>
+            <p class="panel-body">Bureau error codes (values 96 and 98) in past-due columns are detected and imputed with cohort medians.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">✂️</div>
+            <h3 class="panel-title">Outlier Winsorization</h3>
+            <p class="panel-body">Extreme card utilization (&gt;2.0) and debt ratios (&gt;5.0) are capped to prevent mathematical distortion in parameters.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">🔗</div>
+            <h3 class="panel-title">Missing Income Tracking</h3>
+            <p class="panel-body">Applicants without declared salary slips receive cohort median values alongside a binary missing indicator.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🛡️</div>
+            <h3 class="panel-title">Multicollinearity Audit</h3>
+            <p class="panel-body">VIF testing confirms all predictors score below 1.5, guaranteeing stable econometric parameters.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 18: Part 6 - Evaluation Metrics Under Class Imbalance -->
+    <section class="slide">
+      <div class="badge-pill red">Part 6: Model Evaluation Metrics</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Why Accuracy Fails: Evaluating Under Class Imbalance</h2>
+        <p class="slide-lead">Default rates in healthy retail portfolios are only 5% to 7% — making standard accuracy useless.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">❌</div>
+            <h3 class="panel-title">The Accuracy Trap</h3>
+            <p class="panel-body">A naive model predicting that <b>100% of applicants are safe</b> achieves <b>93.3% Accuracy</b> on our dataset. Yet it catches zero bad loans and bankrupts the bank in months.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">📈</div>
+            <h3 class="panel-title">ROC-AUC & Gini Index</h3>
+            <p class="panel-body">Evaluates true positives vs. false positives across all cutoffs.
+            <div class="math-formula">Gini = 2 &times; AUC &minus; 1</div>
+            Measures the model's pure ability to rank risky borrowers higher than good ones.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">🎯</div>
+            <h3 class="panel-title">Brier Score & Calibration</h3>
+            <p class="panel-body">Verifies whether predicted default probabilities equal real-world default frequencies. Crucial for calculating capital provisions under IFRS 9 ECL accounting.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 19: Part 6 - Econometric Baseline & VIF -->
+    <section class="slide">
+      <div class="badge-pill">Part 6: Econometric Baseline</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">White-Box Econometric Baseline: Logit & VIF</h2>
+        <p class="slide-lead">Establishing a rigorous statistical benchmark for regulatory and capital comparison.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel">
+          <div>
+            <div class="panel-icon">🔬</div>
+            <h3 class="panel-title">Multicollinearity Audit (VIF)</h3>
+            <p class="panel-body">All predictors display Variance Inflation Factors between <b>1.03 and 1.31</b> (safely below the conservative threshold of 2.5), proving parameters are free of collinear distortion.</p>
+            <table class="data-table" style="margin-top: 14px;">
+              <tr><td>Open Credit Lines & Loans</td><td><b>1.31</b></td></tr>
+              <tr><td>Real Estate / Mortgages</td><td><b>1.27</b></td></tr>
+              <tr><td>Revolving Card Utilization</td><td><b>1.22</b></td></tr>
+              <tr><td>Past Delinquencies</td><td><b>1.16 – 1.18</b></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">📐</div>
+            <h3 class="panel-title">Logit Estimation & Formulation</h3>
+            <p class="panel-body">Estimated via Maximum Likelihood Estimation (MLE):</p>
+            <div class="math-formula">
+              ln( <i>p<sub>i</sub></i> / (1 &minus; <i>p<sub>i</sub></i>) ) = &beta;<sub>0</sub> + &beta;<sub>1</sub>X<sub>1i</sub> + &hellip; + &beta;<sub>k</sub>X<sub>ki</sub>
+            </div>
+            <p class="panel-body" style="font-size: 0.95rem; color: var(--text-light); margin-top: 6px;">
+              Where <i>p<sub>i</sub></i> is the 2-year default probability, transformed via the link logit function.
+            </p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">0.8558</div>
+              <div class="big-metric-label">Logit Test AUC-ROC</div>
+            </div>
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">71.16%</div>
+              <div class="big-metric-label">Logit Test Gini</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 20: Part 6 - Chart 1: Odds Ratios -->
+    <section class="slide">
+      <div class="badge-pill">Part 6: Econometric Risk Drivers</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Risk Drivers: Odds Ratios (95% Confidence Intervals)</h2>
+        <p class="slide-lead">Quantifying the exact multiplier effect of each borrower factor on default odds.</p>
+      </div>
+      <div class="grid-split-chart">
+        <div class="chart-frame" onclick="zoomImage('output/figures/odds_ratios.png')">
+          <img src="output/figures/odds_ratios.png" alt="Odds Ratios Chart">
+          <div class="chart-tag">Click to enlarge • Figure 1: Econometric Odds Ratios exp(beta)</div>
+        </div>
+        <div class="panel highlight-blue">
+          <div>
+            <h3 class="panel-title">Key Econometric Findings:</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index">1</div>
+                <div><b>Revolving Line Utilization (OR = 6.11):</b> The most dangerous indicator. Exhausting credit limits multiplies default odds by more than <b>6.1 times</b> ($p &lt; 0.001$).</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">2</div>
+                <div><b>Severe 90+ Day Delinquency (OR = 1.95):</b> Past severe default nearly <b>doubles</b> the odds of future default.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">3</div>
+                <div><b>Borrower Age (OR = 0.982):</b> Each additional year of age reduces default odds by <b>1.8%</b> (career and wealth stability).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 21: Part 6 - Advanced AI Engine Architecture -->
+    <section class="slide">
+      <div class="badge-pill green">Part 6: AI Model Specification</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Advanced AI Architecture: Gradient Boosted Trees</h2>
+        <p class="slide-lead">Ensemble specifications, loss optimization, and high-frequency real-time inference.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel">
+          <div>
+            <div class="panel-icon">⚙️</div>
+            <h3 class="panel-title">Ensemble Hyperparameters</h3>
+            <p class="panel-body">Trained using histogram-based gradient boosting (state-of-the-art for tabular fintech credit data):</p>
+            <table class="data-table" style="margin-top: 14px;">
+              <tr><td>Number of Estimators</td><td><b>150 Decision Trees</b></td></tr>
+              <tr><td>Tree Depth / Max Leaves</td><td><b>31 Leaves per Tree</b></td></tr>
+              <tr><td>Learning Rate (Shrinkage)</td><td><b>&eta; = 0.08</b></td></tr>
+              <tr><td>Class Balancing</td><td><b>Balanced Cost Weights</b></td></tr>
+              <tr><td>Inference Latency</td><td><b>&lt; 2 milliseconds</b></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">🌳</div>
+            <h3 class="panel-title">Additive Loss Optimization</h3>
+            <p class="panel-body">Iterative optimization in function space (gradient boosting):</p>
+            <div class="math-formula">
+              F<sub>m</sub>(x) = F<sub>m-1</sub>(x) + &gamma;<sub>m</sub> h<sub>m</sub>(x)
+            </div>
+            <p class="panel-body" style="font-size: 0.95rem; color: var(--text-light); margin-top: 6px;">
+              Each tree <i>h<sub>m</sub>(x)</i> predicts the negative gradient (pseudo-residuals) of the cross-entropy loss, capturing non-linear threshold jumps.
+            </p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number green">0.8681</div>
+              <div class="big-metric-label">AI Test AUC-ROC</div>
+            </div>
+            <div class="big-metric-box">
+              <div class="big-metric-number green">73.62%</div>
+              <div class="big-metric-label">AI Test Gini</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 22: Part 6 - Head-to-Head Comparison Table -->
+    <section class="slide">
+      <div class="badge-pill red">Part 6: Algorithmic Showdown</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Head-to-Head: Traditional Logit vs. AI Gradient Boosting</h2>
+        <p class="slide-lead">A direct architectural and empirical comparison between legacy banking and modern fintech AI.</p>
+      </div>
+      <div class="panel" style="height: calc(100% - 110px); justify-content: center;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Evaluation Dimension</th>
+              <th>Traditional Method (Logit Scorecard)</th>
+              <th>Advanced AI (Gradient Boosting)</th>
+              <th>The Winning AI Advantage for Kaspi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Mathematical Engine</b></td>
+              <td>Linear weighted sum: $\ln(rac{p}{1-p}) = eta_0 + \sum eta_i X_i$</td>
+              <td>Ensemble of hundreds of decision trees</td>
+              <td><b style="color:var(--brand-green);">Captures non-linear risk manifolds</b></td>
+            </tr>
+            <tr>
+              <td><b>Non-Linear Inflection</b></td>
+              <td><b>Blind to tipping points:</b> assumes fixed slope</td>
+              <td><b>Detects sharp risk cliffs:</b> e.g. card usage &gt; 75%</td>
+              <td><b style="color:var(--brand-green);">Stops borrowers on the verge of default</b></td>
+            </tr>
+            <tr>
+              <td><b>Feature Synergy</b></td>
+              <td><b>Zero interactions:</b> each feature is isolated</td>
+              <td><b>Automatic multi-way interactions</b></td>
+              <td><b style="color:var(--brand-green);">Finds complex behavioral archetypes</b></td>
+            </tr>
+            <tr>
+              <td><b>Predictive Power (Hold-out)</b></td>
+              <td>$	ext{AUC} = 0.8558$ | $	ext{Gini} = 71.16\%$</td>
+              <td><b>$	ext{AUC} = 0.8681$ | $	ext{Gini} = 73.62\%$</b></td>
+              <td><b style="color:var(--brand-green);">+2.46 pp higher discrimination power</b></td>
+            </tr>
+            <tr>
+              <td><b>Explainability Status</b></td>
+              <td>Intrinsic White-Box (direct Odds Ratios)</td>
+              <td>Black-Box (requires SHAP audit tools)</td>
+              <td><b style="color:var(--brand-blue);">Logit is simpler; AI requires XAI audits</b></td>
+            </tr>
+            <tr>
+              <td><b>Scoring Latency</b></td>
+              <td>&lt; 1 ms (simple arithmetic calculation)</td>
+              <td>&lt; 2 ms (tree traversal)</td>
+              <td><b style="color:var(--brand-green);">Both easily support subsecond BNPL</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SLIDE 23: Part 6 - Concrete Underwriting Scenario -->
+    <section class="slide">
+      <div class="badge-pill amber">Part 6: Real-World Borrower Case</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Real-World Case: Why Linear Models Fail & AI Wins</h2>
+        <p class="slide-lead">A concrete borrower scenario illustrating how the two underwriting paradigms evaluate the same applicant.</p>
+      </div>
+      <div class="grid-2col">
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🏛️</div>
+            <h3 class="panel-title">1. Traditional Bank Underwriting (Logit)</h3>
+            <p class="panel-body"><b>Borrower Profile:</b> Freelance web developer, age 26, no registered formal labor contract, no prior bank loan history in the credit bureau.</p>
+            <div class="point-list" style="margin-top: 14px;">
+              <div class="point-item">
+                <div class="point-index red">✕</div>
+                <div><b>Bureau Penalty:</b> Scorecard awards 0 points for credit history length.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">✕</div>
+                <div><b>Salary Verification:</b> Fails standard monthly employer payslip check.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index red">✕</div>
+                <div><b>Verdict: REJECT APPLICATION.</b> Traditional bank turns away a high-earning, solvent young customer.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">⚡</div>
+            <h3 class="panel-title">2. Kaspi AI Underwriting (Gradient Boosting)</h3>
+            <p class="panel-body"><b>Same Borrower Profile:</b> Evaluated on high-frequency behavioral alternative data from the Kaspi Super App.</p>
+            <div class="point-list" style="margin-top: 14px;">
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Payment Discipline:</b> 3 years of 100% on-time Kaspi QR utility and internet bill payments.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Cash-Flow Velocity:</b> Steady bi-weekly client transfer deposits from freelance contracts.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Verdict: APPROVE 200,000 ₸ (PD = 2.1%).</b> Kaspi gains a loyal, profitable customer and marketplace commission.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 24: Part 6 - Chart 2: ROC-AUC Comparison -->
+    <section class="slide">
+      <div class="badge-pill green">Part 6: AI Performance Lift</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Model Discrimination Power: ROC Curves Comparison</h2>
+        <p class="slide-lead">Gradient Boosting achieves higher sensitivity without inflating false rejections.</p>
+      </div>
+      <div class="grid-split-chart">
+        <div class="chart-frame" onclick="zoomImage('output/figures/roc_curve_comparison.png')">
+          <img src="output/figures/roc_curve_comparison.png" alt="ROC Comparison">
+          <div class="chart-tag">Click to enlarge • Figure 2: Test Sample ROC Curves</div>
+        </div>
+        <div class="panel highlight-green">
+          <div>
+            <h3 class="panel-title">Model Performance Comparison:</h3>
+            <div class="big-metric-group">
+              <div class="big-metric-box">
+                <div class="big-metric-number blue">0.8558</div>
+                <div class="big-metric-label">Logit Baseline AUC</div>
+              </div>
+              <div class="big-metric-box">
+                <div class="big-metric-number green">0.8681</div>
+                <div class="big-metric-label">Gradient Boosting AUC</div>
+              </div>
+            </div>
+            <div class="point-list" style="margin-top: 18px;">
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>+2.46 pp Gini Uplift:</b> Gini rises from <b>71.16% to 73.62%</b>. In banking, this enables higher loan approval volume at the exact same portfolio risk tier.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index green">✓</div>
+                <div><b>Subsecond Inference:</b> AI scoring tree computation runs in &lt; 2 milliseconds per applicant.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 25: Part 6 - Business Translation of Model Uplift -->
+    <section class="slide">
+      <div class="badge-pill green">Part 6: Financial Translation</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">The Business Translation of a +2.46% Gini Advantage</h2>
+        <p class="slide-lead">Why a 1.2% AUC difference represents tens of millions of dollars in banking profitability.</p>
+      </div>
+      <div class="grid-4col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">📈</div>
+            <h3 class="panel-title">Higher Approvals</h3>
+            <p class="panel-body">A +2.46 pp Gini lift allows approving <b>10% to 14% more good borrowers</b> without increasing portfolio NPL rates.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number blue">+14.1 pp</div>
+              <div class="big-metric-label">Approval Lift</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">📉</div>
+            <h3 class="panel-title">Lower Credit Losses</h3>
+            <p class="panel-body">Holding loan approval volume constant, superior AI ranking cuts bad-debt write-offs by <b>12% to 18%</b> annually.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number green">-15%</div>
+              <div class="big-metric-label">Default Losses</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">💰</div>
+            <h3 class="panel-title">Direct Profit Uplift</h3>
+            <p class="panel-body">On our 30,000 test loans, shifting from naive Logit to optimized AI generates <b>+33.34M ₸</b> in net margin.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number amber">+33.3M ₸</div>
+              <div class="big-metric-label">Net Margin Lift</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🏛️</div>
+            <h3 class="panel-title">IFRS 9 Capital Relief</h3>
+            <p class="panel-body">Accurate scoring prevents misclassifying performing loans into expensive lifetime Stage 2 provisioning reserves.</p>
+          </div>
+          <div class="big-metric-group">
+            <div class="big-metric-box">
+              <div class="big-metric-number red">Stage 2</div>
+              <div class="big-metric-label">Reserve Shield</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 26: Part 6 - Chart 3: Feature Importance -->
+    <section class="slide">
+      <div class="badge-pill">Part 6: AI Risk Hierarchy</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Permutation Feature Importance in Gradient Boosting</h2>
+        <p class="slide-lead">Measuring true predictive loss when individual variables are isolated and scrambled.</p>
+      </div>
+      <div class="grid-split-chart">
+        <div class="chart-frame" onclick="zoomImage('output/figures/feature_importance.png')">
+          <img src="output/figures/feature_importance.png" alt="Feature Importance">
+          <div class="chart-tag">Click to enlarge • Figure 3: Permutation Importance Loss</div>
+        </div>
+        <div class="panel">
+          <div>
+            <h3 class="panel-title">The Top 3 Predictive Pillars:</h3>
+            <div class="point-list">
+              <div class="point-item">
+                <div class="point-index">#1</div>
+                <div><b>Revolving Card Utilization (Loss: 0.066):</b> The single dominant factor. How heavily a borrower leans on short-term debt predicts distress before it happens.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">#2</div>
+                <div><b>90+ Days Severe Arrears (Loss: 0.032):</b> Structural credit history indicator.</div>
+              </div>
+              <div class="point-item">
+                <div class="point-index">#3</div>
+                <div><b>30-59 Days Past Due (Loss: 0.031):</b> Early warning signal of tightening household liquidity.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 27: Part 6 - Chart 4: Cutoff Optimization -->
+    <section class="slide">
+      <div class="badge-pill green">Part 6: Financial Optimization</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Business Cutoff Optimization: Maximizing Profit</h2>
+        <p class="slide-lead">Modeling the asymmetric loss trade-off: 80% loss on bad loans vs. 18% margin on good loans.</p>
+      </div>
+      <div class="grid-split-chart">
+        <div class="chart-frame" onclick="zoomImage('output/figures/cutoff_optimization.png')">
+          <img src="output/figures/cutoff_optimization.png" alt="Cutoff Optimization">
+          <div class="chart-tag">Click to enlarge • Figure 4: Profit vs. Risk Optimization Curve</div>
+        </div>
+        <div class="panel highlight-green">
+          <div>
+            <h3 class="panel-title">The Asymmetric Cost Function:</h3>
+            <p class="panel-body">
+              Average Consumer Loan: <b>100,000 ₸</b><br>
+              • Approving a Bad Loan: <b>-80,000 ₸</b> ($LGD = 80\%$ loss)<br>
+              • Rejecting a Good Loan: <b>-18,000 ₸</b> (Lost 18% interest margin)
+            </p>
+            <div class="big-metric-group">
+              <div class="big-metric-box">
+                <div class="big-metric-number green">0.73</div>
+                <div class="big-metric-label">Optimal Cutoff Threshold</div>
+              </div>
+              <div class="big-metric-box">
+                <div class="big-metric-number green">+33.3M ₸</div>
+                <div class="big-metric-label">Net Profit Uplift</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 28: Part 6 - Chart 5: Confusion Matrices -->
+    <section class="slide">
+      <div class="badge-pill">Part 6: Policy Comparison</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Confusion Matrices: Overcoming the Naive 0.50 Flaw</h2>
+        <p class="slide-lead">Comparing the naive academic threshold with business-optimized risk execution.</p>
+      </div>
+      <div class="grid-split-chart">
+        <div class="chart-frame" onclick="zoomImage('output/figures/confusion_matrices.png')">
+          <img src="output/figures/confusion_matrices.png" alt="Confusion Matrices">
+          <div class="chart-tag">Click to enlarge • Figure 5: Confusion Matrices on 30,000 Test Loans</div>
+        </div>
+        <div class="panel">
+          <div>
+            <h3 class="panel-title">Policy Performance Comparison:</h3>
+            <table class="data-table">
+              <thead>
+                <tr><th>Policy Metric</th><th>Naive (0.50)</th><th>Optimized (0.73)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><b>Approval Rate</b></td><td>75.4%</td><td><b style="color:var(--brand-green);">89.5% (+14.1 pp)</b></td></tr>
+                <tr><td><b>Portfolio NPL</b></td><td>1.91%</td><td><b>3.24% (Within Appetite)</b></td></tr>
+                <tr><td><b>Net Profit (Test)</b></td><td>364.78M ₸</td><td><b style="color:var(--brand-green);">398.12M ₸</b></td></tr>
+                <tr><td><b>Value Added</b></td><td>Baseline</td><td><b>+33.34M ₸ Pure Margin</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 29: Part 7 - Recommendation: GNN Anti-Fraud -->
+    <section class="slide">
+      <div class="badge-pill">Part 7: Strategic Recommendations</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Recommendation 1: Graph Neural Networks (GNN)</h2>
+        <p class="slide-lead">Moving beyond tabular borrower data to uncover organized merchant-collusion rings.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">🕸️</div>
+            <h3 class="panel-title">Synthetic Fraud Rings</h3>
+            <p class="panel-body">Organized fraudsters create networks of fake merchant accounts and fictitious buyers to cash out BNPL credit limits without actual physical merchandise being exchanged.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">🔗</div>
+            <h3 class="panel-title">Transaction Graph Topology</h3>
+            <p class="panel-body">GNNs analyze buyer-merchant connection graphs. Nodes sharing device IDs, delivery addresses, or rapid cycling funds are flagged and quarantined instantly.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">🛡️</div>
+            <h3 class="panel-title">Real-Time Neutralization</h3>
+            <p class="panel-body">Ant Group deploys Graph Computing to neutralize fraud in milliseconds. Integrating GNNs into Kaspi will safeguard high-ticket marketplace electronics financing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 30: Part 7 - Recommendation: Drift Monitoring (PSI) -->
+    <section class="slide">
+      <div class="badge-pill">Part 7: Continuous Governance</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Recommendation 2: Continuous Data Drift Monitoring (PSI)</h2>
+        <p class="slide-lead">Safeguarding against macroeconomic shocks to avoid Zillow-style algorithm collapses.</p>
+      </div>
+      <div class="grid-3col">
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">📡</div>
+            <h3 class="panel-title">Population Stability Index (PSI)</h3>
+            <p class="panel-body">Continuously tracks shifts between training cohort distributions and live applicant data:
+            <div class="math-formula">PSI = &Sigma; (Actual<sub>i</sub> &minus; Expected<sub>i</sub>) &times; ln( Actual<sub>i</sub> / Expected<sub>i</sub> )</div>
+            • PSI &lt; 0.10: Stable cohort<br>
+            • PSI &gt; 0.25: Critical Drift Alert</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">⚡</div>
+            <h3 class="panel-title">Automated Retraining Loop</h3>
+            <p class="panel-body">If National Bank base rates shift or currency devalues, an automated pipeline triggers retraining on recent 30-day window data with updated loss weights.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🛑</div>
+            <h3 class="panel-title">Dynamic Fail-Safe Cutoffs</h3>
+            <p class="panel-body">During detected market turbulence, the system automatically dials the cutoff threshold back to a conservative stance until model calibration verifies.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 31: Part 7 - Final Strategic Takeaways -->
+    <section class="slide">
+      <div class="badge-pill green">Conclusion</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Executive Takeaways: The 4 Pillars of Modern Credit AI</h2>
+        <p class="slide-lead">Summary of findings and strategic recommendations for fintech leadership.</p>
+      </div>
+      <div class="grid-4col">
+        <div class="panel highlight-blue">
+          <div>
+            <div class="panel-icon">⚡</div>
+            <h3 class="panel-title">1. Speed is Viable</h3>
+            <p class="panel-body">Subsecond automated BNPL approval is mathematically safe when powered by Gradient Boosting and digital footprints ($AUC = 0.868$).</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-green">
+          <div>
+            <div class="panel-icon">📈</div>
+            <h3 class="panel-title">2. Capital Value</h3>
+            <p class="panel-body">Optimized cutoffs generate <b>+33.3M ₸ profit uplift</b> per 30k applications while keeping NPL safely at 3.24% (well within Kaspi's 5.4% average).</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-amber">
+          <div>
+            <div class="panel-icon">🔍</div>
+            <h3 class="panel-title">3. Mandatory XAI</h3>
+            <p class="panel-body">SHAP values prevent the Apple Card bias disaster, providing compliant, human-auditable reasons for every denied loan.</p>
+          </div>
+        </div>
+
+        <div class="panel highlight-red">
+          <div>
+            <div class="panel-icon">🛡️</div>
+            <h3 class="panel-title">4. Active Drift Defense</h3>
+            <p class="panel-body">Continuous PSI monitoring prevents Zillow-style market blindspots during inflationary or interest rate shocks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 32: References -->
+    <section class="slide">
+      <div class="badge-pill">Academic & Regulatory Sources</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Academic & Institutional References (10 Sources)</h2>
+        <p class="slide-lead">Official regulatory documents, peer-reviewed financial journals, and SEC disclosures.</p>
+      </div>
+      <div class="panel" style="font-size: 0.95rem; line-height: 1.7; height: calc(100% - 110px); justify-content: center;">
+        <ol style="margin-left: 24px; color: var(--text-muted);">
+          <li><b>Kaspi.kz (2025).</b> <i>Kaspi.kz 4Q & Full Year 2024 Financial Results</i>. London Stock Exchange & Nasdaq.</li>
+          <li><b>Kaspi.kz (2024).</b> <i>US SEC Form 20-F: Annual Report for the fiscal year ended Dec 31, 2023/2024</i>. U.S. SEC.</li>
+          <li><b>World Bank & BIS (2020).</b> <i>Fintech and the digital transformation of financial services</i>. FSI Insights No. 23.</li>
+          <li><b>OECD (2021).</b> <i>Artificial Intelligence, Machine Learning and Big Data in Finance: Challenges for Regulators</i>.</li>
+          <li><b>Berg, T., Burg, V., Gombović, A., & Puri, M. (2020).</b> <i>On the Rise of the Fintechs: Credit Scoring Using Digital Footprints</i>. <b>The Review of Financial Studies</b>, 33(7), 2845–2897.</li>
+          <li><b>Bussmann, N., et al. (2021).</b> <i>Explainable Machine Learning in Credit Risk Management</i>. Frontiers in AI.</li>
+          <li><b>NY State Department of Financial Services (2021).</b> <i>Report on Apple Card Investigation: Algorithmic Scrutiny & Fair Lending</i>.</li>
+          <li><b>McKinsey & Company (2021).</b> <i>AI-Powered Decision Making for the Bank of the Future</i>. Banking Practice.</li>
+          <li><b>Kaggle & FICO (2019).</b> <i>Give Me Some Credit: Credit Risk Benchmark Dataset</i>. Open Platform.</li>
+          <li><b>ARDFM (2024).</b> <i>National Bank & ARDFM Resolutions on Debt Burden Ratios (КДН) & Consumer Credit Norms</i>.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- SLIDE 33: Defense Q&A Prep -->
+    <section class="slide">
+      <div class="badge-pill amber">Defense Preparation</div>
+      <div class="slide-heading-block">
+        <h2 class="slide-h1">Q&A Defense Guide: Key Committee Questions</h2>
+        <p class="slide-lead">Click each question during the examination to reveal the mathematically rigorous answer.</p>
+      </div>
+      <div class="grid-2col" style="height: calc(100% - 110px); align-items: start;">
+        <div>
+          <div class="qa-box" onclick="toggleQA(this)">
+            <div class="qa-title">
+              1. Why reject Accuracy in favor of ROC-AUC and Gini?
+              <span class="qa-toggle-icon">+</span>
+            </div>
+            <div class="qa-body">
+              Because of severe class imbalance (only 6.7% defaults). A trivial model guessing 0% default achieves 93.3% accuracy but catches zero bad loans. ROC-AUC is scale-invariant and measures true separation power across all potential decision cutoffs.
+            </div>
+          </div>
+
+          <div class="qa-box" onclick="toggleQA(this)">
+            <div class="qa-title">
+              2. Why keep an econometric Logit if Boosting has higher AUC?
+              <span class="qa-toggle-icon">+</span>
+            </div>
+            <div class="qa-body">
+              For Basel II/III regulatory capital compliance and parameter monotonicity validation. Logit provides exact confidence intervals and guarantees that increasing arrears strictly increases default odds, acting as a sanity check against tree overfitting.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="qa-box" onclick="toggleQA(this)">
+            <div class="qa-title">
+              3. How does Kaspi prevent the Apple Card bias disaster?
+              <span class="qa-toggle-icon">+</span>
+            </div>
+            <div class="qa-body">
+              By rejecting the naive "Fairness Through Unawareness" myth. Kaspi deploys SHAP decomposition to verify that rejections are driven solely by financial indicators (utilization, arrears, КДН) and runs Disparate Impact audits across demographic segments.
+            </div>
+          </div>
+
+          <div class="qa-box" onclick="toggleQA(this)">
+            <div class="qa-title">
+              4. What happens during a currency devaluation or rate hike?
+              <span class="qa-toggle-icon">+</span>
+            </div>
+            <div class="qa-body">
+              Data Drift occurs (as seen in Zillow's $880M collapse). Kaspi tracks the Population Stability Index (PSI). If PSI > 0.25, the system automatically tightens approval cutoffs and initiates automated retraining on recent 30-day cohorts.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Navigation -->
+  <footer class="bottom-bar">
+    <div class="hint-label">
+      <span>Keys: <span class="key-cap">←</span> <span class="key-cap">→</span> or <span class="key-cap">Space</span></span>
+      <span>•</span>
+      <span>Fullscreen: <span class="key-cap">F</span></span>
+    </div>
+    <div class="nav-arrow-group">
+      <button class="btn-arrow" id="prevSlide" title="Previous Slide (Left Arrow)">←</button>
+      <button class="btn-arrow" id="nextSlide" title="Next Slide (Right Arrow)">→</button>
+    </div>
+  </footer>
+
+  <!-- Modal Zoom -->
+  <div class="zoom-modal" id="zoomModal" onclick="closeZoom()">
+    <span class="zoom-close">&times;</span>
+    <img src="" alt="Zoomed Chart" class="zoom-img" id="zoomImg">
+  </div>
+
+  <script>
+    class DeckApp {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.total = this.slides.length;
+        this.current = 0;
+        this.fill = document.getElementById('progressFill');
+        this.indicator = document.getElementById('slideIndicator');
+        this.prevBtn = document.getElementById('prevSlide');
+        this.nextBtn = document.getElementById('nextSlide');
+        this.fsBtn = document.getElementById('fsToggle');
+        this.init();
+      }
+
+      init() {
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+            e.preventDefault();
+            this.go(this.current + 1);
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            this.go(this.current - 1);
+          } else if (e.key === 'Home') {
+            e.preventDefault();
+            this.go(0);
+          } else if (e.key === 'End') {
+            e.preventDefault();
+            this.go(this.total - 1);
+          } else if (e.key === 'f' || e.key === 'F') {
+            this.toggleFullscreen();
+          }
+        });
+
+        this.prevBtn.addEventListener('click', () => this.go(this.current - 1));
+        this.nextBtn.addEventListener('click', () => this.go(this.current + 1));
+        this.fsBtn.addEventListener('click', () => this.toggleFullscreen());
+
+        this.update();
+      }
+
+      go(idx) {
+        if (idx < 0 || idx >= this.total) return;
+        this.slides[this.current].classList.remove('active');
+        this.current = idx;
+        this.slides[this.current].classList.add('active');
+        this.update();
+      }
+
+      update() {
+        const pct = ((this.current + 1) / this.total) * 100;
+        this.fill.style.width = `${pct}%`;
+        this.indicator.textContent = `${this.current + 1} / ${this.total}`;
+        this.prevBtn.disabled = this.current === 0;
+        this.nextBtn.disabled = this.current === this.total - 1;
+      }
+
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => console.log(err));
+        } else {
+          document.exitFullscreen().catch(err => console.log(err));
+        }
+      }
+    }
+
+    function toggleQA(card) {
+      card.classList.toggle('open');
+    }
+
+    function zoomImage(src) {
+      const modal = document.getElementById('zoomModal');
+      const img = document.getElementById('zoomImg');
+      img.src = src;
+      modal.classList.add('open');
+    }
+
+    function closeZoom() {
+      document.getElementById('zoomModal').classList.remove('open');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.deck = new DeckApp();
+    });
+  </script>
+</body>
+</html>

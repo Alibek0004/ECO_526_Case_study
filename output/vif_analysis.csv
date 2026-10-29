@@ -1,0 +1,11 @@
+Feature,ColName,VIF
+Утилизация кредитных карт,RevolvingUtilization_clean,1.2221368118425395
+Возраст заемщика,age,1.1523365660473373
+Просрочки 30-59 дней,NumberOfTime30-59DaysPastDueNotWorse,1.178202019770752
+Долговая нагрузка (Debt Ratio),DebtRatio_clean,1.0489481202795277
+Ежемесячный доход,MonthlyIncome_clean,1.03223209233237
+Число открытых кредитов,NumberOfOpenCreditLinesAndLoans,1.3069721446297737
+Тяжелые просрочки (90+ дней),NumberOfTimes90DaysLate,1.1600787582522243
+Число ипотек / залогов,NumberRealEstateLoansOrLines,1.2679525349468377
+Просрочки 60-89 дней,NumberOfTime60-89DaysPastDueNotWorse,1.1805597712318796
+Число иждивенцев,NumberOfDependents_clean,1.1051578704534382
