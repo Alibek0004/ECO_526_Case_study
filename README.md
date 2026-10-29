@@ -8,7 +8,7 @@
 
 ## 🚀 Live Interactive Presentation
 
-👉 **[Open Live Presentation Slides](https://<YOUR-USERNAME>.github.io/<REPO-NAME>/)**  
+👉 **[Open Live Presentation Slides](https://alibek0004.github.io/ECO_526_Case_study/)**  
 *(Works out-of-the-box on any browser, laptop, or mobile screen)*
 
 * **Keyboard Navigation:** Use `←` / `→` or `Space` to navigate slides.
